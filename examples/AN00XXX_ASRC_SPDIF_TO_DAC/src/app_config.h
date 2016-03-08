@@ -3,7 +3,7 @@
 
 
 #define     ASRC_N_CHANNELS                 2  //Total number of audio channels to be processed by SRC (minimum 1)
-#define     ASRC_N_INSTANCES                2  //Number of instances (each usually run a logical core) used to process audio (minimum 1)
+#define     ASRC_N_INSTANCES                2  //Number of instances (each run on a logical core) used to process audio (minimum 1)
 #define     ASRC_CHANNELS_PER_INSTANCE      (ASRC_N_CHANNELS/ASRC_N_INSTANCES)
                                                //Calcualted number of audio channels processed by each core
 #define     ASRC_N_IN_SAMPLES               16 //Number of samples per channel in each block passed into SRC each call

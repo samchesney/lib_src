@@ -84,14 +84,15 @@ int main(void){
 
     par{
         on tile[SPDIF_TILE]: spdif_rx(c_spdif_rx, port_spdif_rx, clk_spdif_rx, DEFAULT_FREQ_HZ_SPDIF);
-        on tile[SPDIF_TILE]: spdif_handler(c_spdif_rx, i_serial_in);
-        on tile[SPDIF_TILE]: serial2block(i_serial_in, i_serial2block, i_sr_input);
-        on tile[SPDIF_TILE]: par (int i=0; i<ASRC_N_INSTANCES; i++) src(i_serial2block[i], i_block2serial[i], i_fs_ratio[i]);
-        on tile[SPDIF_TILE]: unsafe {block2serial(i_block2serial, i_serial_out, i_sr_i2s);}
-
-        on tile[AUDIO_TILE]: audio_codec_cs4384_cs5368(i_codec, i_i2c[0], CODEC_IS_I2S_SLAVE, i_gpio[0], i_gpio[1], i_gpio[6], i_gpio[7]);
-        on tile[AUDIO_TILE]: i2c_master_single_port(i_i2c, 1, port_i2c, 10, 0 /*SCL*/, 1 /*SDA*/, 0);
-        on tile[AUDIO_TILE]: output_gpio(i_gpio, 8, port_audio_config, null);
+        on tile[AUDIO_TILE].core[0]: spdif_handler(c_spdif_rx, i_serial_in);
+        on tile[AUDIO_TILE].core[1]: rate_server(i_sr_input, i_sr_i2s, i_fs_ratio, i_leds);
+        on tile[AUDIO_TILE]: serial2block(i_serial_in, i_serial2block, i_sr_input);
+        on tile[AUDIO_TILE]: par (int i=0; i<ASRC_N_INSTANCES; i++) src(i_serial2block[i], i_block2serial[i], i_fs_ratio[i]);
+        on tile[AUDIO_TILE]: unsafe {block2serial(i_block2serial, i_serial_out, i_sr_i2s);}
+        on tile[AUDIO_TILE]: [[distribute]]audio_codec_cs4384_cs5368(i_codec, i_i2c[0], CODEC_IS_I2S_SLAVE, i_gpio[0], i_gpio[1], i_gpio[6], i_gpio[7]);
+        on tile[AUDIO_TILE]: [[distribute]]i2c_master_single_port(i_i2c, 1, port_i2c, 10, 0 /*SCL*/, 1 /*SDA*/, 0);
+        on tile[AUDIO_TILE]: [[distribute]]output_gpio(i_gpio, 8, port_audio_config, null);
+        on tile[AUDIO_TILE]: [[distribute]] i2s_handler(i_i2s, i_serial_out, i_codec);
         on tile[AUDIO_TILE]: {
             i_gpio[5].output(0); //Select fixed local clock on MCLK mux
             i_gpio[2].output(0); //Output something to this interface (value is don't care) to avoid compiler warning of unused end
@@ -102,8 +103,6 @@ int main(void){
             debug_printf("Starting I2S\n");
             i2s_master(i_i2s, ports_i2s_dac, 1, ports_i2s_adc, 1, port_i2s_bclk, port_i2s_wclk, clk_i2s, clk_mclk);
         }
-        on tile[AUDIO_TILE]: i2s_handler(i_i2s, i_serial_out, i_codec);
-        on tile[AUDIO_TILE]: rate_server(i_sr_input, i_sr_i2s, i_fs_ratio, i_leds);
         on tile[SPDIF_TILE]: led_driver(i_leds, p_leds_row, p_leds_col);
     }
     return 0;
