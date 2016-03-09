@@ -85,7 +85,7 @@ int main(void){
     par{
         on tile[SPDIF_TILE]: spdif_rx(c_spdif_rx, port_spdif_rx, clk_spdif_rx, DEFAULT_FREQ_HZ_SPDIF);
         on tile[AUDIO_TILE].core[0]: spdif_handler(c_spdif_rx, i_serial_in);
-        on tile[AUDIO_TILE].core[1]: rate_server(i_sr_input, i_sr_i2s, i_fs_ratio, i_leds);
+        on tile[AUDIO_TILE].core[0]: rate_server(i_sr_input, i_sr_i2s, i_fs_ratio, i_leds);
         on tile[AUDIO_TILE]: serial2block(i_serial_in, i_serial2block, i_sr_input);
         on tile[AUDIO_TILE]: par (int i=0; i<ASRC_N_INSTANCES; i++) src(i_serial2block[i], i_block2serial[i], i_fs_ratio[i]);
         on tile[AUDIO_TILE]: unsafe {block2serial(i_block2serial, i_serial_out, i_sr_i2s);}
